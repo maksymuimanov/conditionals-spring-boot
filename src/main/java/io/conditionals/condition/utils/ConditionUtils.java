@@ -69,11 +69,10 @@ public final class ConditionUtils {
     public static ConditionOutcome checkAttributes(ConditionMessage.Builder message,
                                                    Stream<@Nullable AnnotationAttributes> attributesStream,
                                                    Function<Stream<@Nullable AnnotationAttributes>, ConditionOutcome> outcomeFunction) {
-        boolean empty = attributesStream.findAny()
-                .isEmpty();
-        return empty
+        List<@Nullable AnnotationAttributes> attributes = attributesStream.toList();
+        return attributes.isEmpty()
                 ? noAttributesFound(message)
-                : outcomeFunction.apply(attributesStream);
+                : outcomeFunction.apply(attributes.stream());
     }
 
     public static ConditionOutcome checkAttributes(ConditionMessage.Builder message,

@@ -1,7 +1,6 @@
 package io.conditionals.condition.impl;
 
-import io.conditionals.condition.ConditionalOnIntegerProperties;
-import io.conditionals.condition.ConditionalOnIntegerProperty;
+import io.conditionals.condition.ConditionalOnStringProperties;
 import io.conditionals.condition.ConditionalOnStringProperty;
 import io.conditionals.condition.dto.PropertySpec;
 import io.conditionals.condition.utils.ConditionUtils;
@@ -21,8 +20,8 @@ public class OnStringPropertyCondition extends SpringBootCondition {
     @Override
     public ConditionOutcome getMatchOutcome(ConditionContext context,
                                             AnnotatedTypeMetadata metadata) {
-        ConditionMessage.Builder message = ConditionMessage.forCondition(ConditionalOnIntegerProperty.class);
-        Stream<@Nullable AnnotationAttributes> annotationAttributes = ConditionUtils.mergedStream(metadata, ConditionalOnIntegerProperty.class, ConditionalOnIntegerProperties.class);
+        ConditionMessage.Builder message = ConditionMessage.forCondition(ConditionalOnStringProperty.class);
+        Stream<@Nullable AnnotationAttributes> annotationAttributes = ConditionUtils.mergedStream(metadata, ConditionalOnStringProperty.class, ConditionalOnStringProperties.class);
         return ConditionUtils.evaluateConditions(message, annotationAttributes, attributes ->
                 ConditionUtils.evaluatePropertyConditions(message, attributes, Spec::new, context.getEnvironment(), (spec, property, candidate) -> {
                     if (spec.ignoreCase) {

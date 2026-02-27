@@ -27,10 +27,14 @@ public class OnEnumPropertyCondition extends SpringBootCondition {
                 ConditionUtils.evaluatePropertyConditions(message, attributes, Spec::new, context.getEnvironment(), (spec, property, candidate) -> {
                     Class<? extends Enum> enumClass = spec.enumType;
                     String propertyName = property.toUpperCase(Locale.ROOT);
-                    Enum propertyEnum = Enum.valueOf(enumClass, propertyName);
                     String candidateName = candidate.toUpperCase(Locale.ROOT);
-                    Enum candidateEnum = Enum.valueOf(enumClass, candidateName);
-                    return propertyEnum.equals(candidateEnum);
+                    try {
+                        Enum propertyEnum = Enum.valueOf(enumClass, propertyName);
+                        Enum candidateEnum = Enum.valueOf(enumClass, candidateName);
+                        return propertyEnum.equals(candidateEnum);
+                    } catch (IllegalArgumentException ex) {
+                        return false;
+                    }
                 })
         );
     }
