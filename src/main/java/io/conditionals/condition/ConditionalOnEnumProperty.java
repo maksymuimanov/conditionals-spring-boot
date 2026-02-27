@@ -19,7 +19,7 @@ public @interface ConditionalOnEnumProperty {
 
     String havingValue() default "";
 
-    Class<? extends Enum<?>> enumClass();
+    Class<? extends Enum<?>> enumType();
 
     boolean matchIfMissing() default false;
 }

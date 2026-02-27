@@ -25,25 +25,24 @@ public class OnEnumPropertyCondition extends SpringBootCondition {
         Stream<@Nullable AnnotationAttributes> annotationAttributes = ConditionUtils.mergedStream(metadata, ConditionalOnEnumProperty.class, ConditionalOnEnumProperties.class);
         return ConditionUtils.evaluateConditions(message, annotationAttributes, attributes ->
                 ConditionUtils.evaluatePropertyConditions(message, attributes, Spec::new, context.getEnvironment(), (spec, property, candidate) -> {
-                            Class<? extends Enum> enumClass = spec.enumClass;
-                            String propertyName = property.toUpperCase(Locale.ROOT);
-                            Enum propertyEnum = Enum.valueOf(enumClass, propertyName);
-                            String candidateName = candidate.toUpperCase(Locale.ROOT);
-                            Enum candidateEnum = Enum.valueOf(enumClass, candidateName);
-                            return propertyEnum.equals(candidateEnum);
-                        }
-                )
+                    Class<? extends Enum> enumClass = spec.enumType;
+                    String propertyName = property.toUpperCase(Locale.ROOT);
+                    Enum propertyEnum = Enum.valueOf(enumClass, propertyName);
+                    String candidateName = candidate.toUpperCase(Locale.ROOT);
+                    Enum candidateEnum = Enum.valueOf(enumClass, candidateName);
+                    return propertyEnum.equals(candidateEnum);
+                })
         );
     }
 
     @SuppressWarnings("rawtypes")
     private static class Spec extends PropertySpec<String, Spec> {
-        private static final String ENUM_CLASS = "enumClass";
-        private final Class<? extends Enum> enumClass;
+        private static final String ENUM_TYPE = "enumType";
+        private final Class<? extends Enum> enumType;
 
         protected Spec(Class<? extends Annotation> annotationType, AnnotationAttributes annotationAttributes) {
             super(annotationType, annotationAttributes);
-            this.enumClass = annotationAttributes.getClass(ENUM_CLASS);
+            this.enumType = annotationAttributes.getClass(ENUM_TYPE);
         }
     }
 }

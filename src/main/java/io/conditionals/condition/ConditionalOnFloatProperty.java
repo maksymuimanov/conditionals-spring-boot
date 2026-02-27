@@ -1,6 +1,6 @@
 package io.conditionals.condition;
 
-import io.conditionals.condition.impl.OnOsCondition;
+import io.conditionals.condition.impl.OnFloatPropertyCondition;
 import org.springframework.context.annotation.Conditional;
 
 import java.lang.annotation.*;
@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Conditional(OnOsCondition.class)
+@Conditional(OnFloatPropertyCondition.class)
 @Repeatable(ConditionalOnFloatProperties.class)
 public @interface ConditionalOnFloatProperty {
     String[] value() default {};
@@ -27,8 +27,6 @@ public @interface ConditionalOnFloatProperty {
 
     enum MatchType {
         EQUALS,
-        POSITIVE,
-        NEGATIVE,
         GREATER_THAN,
         LESS_THAN,
         GREATER_THAN_OR_EQUAL,

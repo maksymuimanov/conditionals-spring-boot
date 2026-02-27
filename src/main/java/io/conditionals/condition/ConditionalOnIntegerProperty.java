@@ -1,6 +1,6 @@
 package io.conditionals.condition;
 
-import io.conditionals.condition.impl.OnOsCondition;
+import io.conditionals.condition.impl.OnIntegerPropertyCondition;
 import org.springframework.context.annotation.Conditional;
 
 import java.lang.annotation.*;
@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Conditional(OnOsCondition.class)
+@Conditional(OnIntegerPropertyCondition.class)
 @Repeatable(ConditionalOnIntegerProperties.class)
 public @interface ConditionalOnIntegerProperty {
     String[] value() default {};
@@ -27,8 +27,6 @@ public @interface ConditionalOnIntegerProperty {
 
     enum MatchType {
         EQUALS,
-        POSITIVE,
-        NEGATIVE,
         GREATER_THAN,
         LESS_THAN,
         GREATER_THAN_OR_EQUAL,

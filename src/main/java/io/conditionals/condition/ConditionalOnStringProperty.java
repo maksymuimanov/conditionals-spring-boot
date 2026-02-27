@@ -1,6 +1,6 @@
 package io.conditionals.condition;
 
-import io.conditionals.condition.impl.OnOsCondition;
+import io.conditionals.condition.impl.OnStringPropertyCondition;
 import org.springframework.context.annotation.Conditional;
 
 import java.lang.annotation.*;
@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Conditional(OnOsCondition.class)
+@Conditional(OnStringPropertyCondition.class)
 @Repeatable(ConditionalOnStringProperties.class)
 public @interface ConditionalOnStringProperty {
     String[] value() default {};
