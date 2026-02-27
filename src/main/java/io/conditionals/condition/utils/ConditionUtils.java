@@ -40,11 +40,11 @@ public final class ConditionUtils {
                 : ConditionOutcome.noMatch(ConditionMessage.of(noMatch));
     }
 
-    public static <V, S extends PropertySpec<V, S>> ConditionOutcome evaluateConditions(ConditionMessage.Builder message,
-                                                                                        @Nullable AnnotationAttributes attributes,
-                                                                                        BiFunction<Class<? extends Annotation>, AnnotationAttributes, S> specProvider,
-                                                                                        PropertyResolver resolver,
-                                                                                        PropertySpecMatcher<V, S> matcher) {
+    public static <V, S extends PropertySpec<V, S>> ConditionOutcome evaluatePropertyConditions(ConditionMessage.Builder message,
+                                                                                                @Nullable AnnotationAttributes attributes,
+                                                                                                BiFunction<Class<? extends Annotation>, AnnotationAttributes, S> specProvider,
+                                                                                                PropertyResolver resolver,
+                                                                                                PropertySpecMatcher<V, S> matcher) {
         return checkAttributes(message, attributes, annotationAttributes -> {
             Class<? extends Annotation> annotationType = annotationAttributes.annotationType();
             S spec = specProvider.apply(annotationType, annotationAttributes);
