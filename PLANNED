@@ -1,10 +1,12 @@
 ConditionalOnCharacterProperty
-ConditionalOnMapProperty
+
 ConditionalOnActiveProfileMatch
+
 ConditionalOnEnvironmentVariable
 ConditionalOnSystemProperty
+
 ConditionalOnBeanCount
-ConditionalOnPropertyPresent
+
 ConditionalOnPortAvailable
 
 ConditionalOnAnyProperty
