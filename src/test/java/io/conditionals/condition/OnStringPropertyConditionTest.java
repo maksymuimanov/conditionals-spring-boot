@@ -1,5 +1,6 @@
 package io.conditionals.condition;
 
+import io.conditionals.condition.dto.StringMatchType;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -151,7 +152,7 @@ class OnStringPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class ContainsConfig {
         @Bean
-        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = ConditionalOnStringProperty.MatchType.CONTAINS)
+        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = StringMatchType.CONTAINS)
         String conditionalBean() {
             return "OK";
         }
@@ -160,7 +161,7 @@ class OnStringPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class StartsWithConfig {
         @Bean
-        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = ConditionalOnStringProperty.MatchType.STARTS_WITH)
+        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = StringMatchType.STARTS_WITH)
         String conditionalBean() {
             return "OK";
         }
@@ -169,7 +170,7 @@ class OnStringPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class EndsWithConfig {
         @Bean
-        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = ConditionalOnStringProperty.MatchType.ENDS_WITH)
+        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo", matchType = StringMatchType.ENDS_WITH)
         String conditionalBean() {
             return "OK";
         }
@@ -178,7 +179,7 @@ class OnStringPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class MatchesConfig {
         @Bean
-        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo-\\d+", matchType = ConditionalOnStringProperty.MatchType.MATCHES)
+        @ConditionalOnStringProperty(name = "app.name", havingValue = "demo-\\d+", matchType = StringMatchType.MATCHES)
         String conditionalBean() {
             return "OK";
         }

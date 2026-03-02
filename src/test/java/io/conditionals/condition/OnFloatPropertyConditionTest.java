@@ -1,5 +1,6 @@
 package io.conditionals.condition;
 
+import io.conditionals.condition.dto.NumericMatchType;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -69,7 +70,7 @@ class OnFloatPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class GreaterThanConfig {
         @Bean
-        @ConditionalOnFloatProperty(name = "app.ratio", havingValue = 1.0F, matchType = ConditionalOnFloatProperty.MatchType.GREATER_THAN)
+        @ConditionalOnFloatProperty(name = "app.ratio", havingValue = 1.0F, matchType = NumericMatchType.GREATER_THAN)
         Float conditionalBean() {
             return 1.0F;
         }

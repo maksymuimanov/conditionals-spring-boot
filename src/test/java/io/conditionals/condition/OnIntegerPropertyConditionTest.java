@@ -1,5 +1,6 @@
 package io.conditionals.condition;
 
+import io.conditionals.condition.dto.NumericMatchType;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -91,7 +92,7 @@ class OnIntegerPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class GreaterThanConfig {
         @Bean
-        @ConditionalOnIntegerProperty(name = "app.count", havingValue = 5, matchType = ConditionalOnIntegerProperty.MatchType.GREATER_THAN)
+        @ConditionalOnIntegerProperty(name = "app.count", havingValue = 5, matchType = NumericMatchType.GREATER_THAN)
         Integer conditionalBean() {
             return 5;
         }
