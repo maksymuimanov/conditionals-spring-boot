@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.core.env.PropertyResolver;
+import org.springframework.util.Assert;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -137,7 +138,8 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
         private Spec(Class<? extends Annotation> annotationType, AnnotationAttributes annotationAttributes) {
             super(annotationType, annotationAttributes, attribute -> {
                 String[] pairs = (String[]) attribute;
-                if (pairs.length % 2 != 0) throw new IllegalArgumentException("Map must have even number of elements");
+                Assert.state(pairs.length % 2 == 0,
+                        () -> "The havingValue attribute of @%s must be specified as pairs of key-value".formatted(annotationType.getSimpleName()));
                 Map<String, String> map = new HashMap<>();
                 for (int i = 0; i < pairs.length; i += 2) {
                     map.put(pairs[i], pairs[i + 1]);

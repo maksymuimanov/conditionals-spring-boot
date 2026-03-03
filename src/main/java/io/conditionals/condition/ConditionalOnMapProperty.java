@@ -3,7 +3,6 @@ package io.conditionals.condition;
 import io.conditionals.condition.impl.OnMapPropertyCondition;
 import io.conditionals.condition.spec.MapMatchType;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.*;
 
@@ -52,7 +51,6 @@ public @interface ConditionalOnMapProperty {
      *
      * @return property names (without prefix)
      */
-    @AliasFor("name")
     String[] value() default {};
 
     /**
@@ -67,7 +65,6 @@ public @interface ConditionalOnMapProperty {
      *
      * @return property names (without prefix)
      */
-    @AliasFor("value")
     String[] name() default {};
 
     /**
