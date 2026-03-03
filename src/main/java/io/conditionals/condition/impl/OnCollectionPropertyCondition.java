@@ -12,6 +12,28 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
+/**
+ * {@link org.springframework.boot.autoconfigure.condition.SpringBootCondition} implementation backing
+ * {@link io.conditionals.condition.ConditionalOnCollectionProperty}.
+ *
+ * <p>This condition resolves properties as {@code String[]} and compares them to the configured candidate array
+ * using a {@link CollectionMatchType}-driven algorithm implemented by {@link Matcher}. An optional size
+ * constraint is applied before evaluating the match type.</p>
+ *
+ * <p><b>Collection resolution</b></p>
+ * <p>Property values are resolved through {@link org.springframework.core.env.Environment} using Spring's
+ * conversion facilities for {@code String[]}.</p>
+ *
+ * <p><b>Negation</b></p>
+ * <p>After computing the match predicate, negation is applied via
+ * {@link ConditionUtils#revert(boolean, boolean)} using {@link Spec#isNot()}.</p>
+ *
+ * <p><b>Thread safety</b></p>
+ * <p>This type is stateless and thread-safe. Matcher/spec instances are created per evaluation.</p>
+ *
+ * @author Maksym Uimanov
+ * @since 1.0
+ */
 public class OnCollectionPropertyCondition extends PropertySpringBootCondition<String[], OnCollectionPropertyCondition.Spec> {
     @Override
     protected Class<? extends Annotation> getAnnotationClass() {
@@ -33,6 +55,14 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
         return new Matcher();
     }
 
+    /**
+     * Matcher implementing {@link CollectionMatchType} semantics for {@code String[]}.
+     *
+     * <p><b>Size constraint</b></p>
+     * <p>If {@link Spec#size} is not {@code -1}, the resolved array length must equal the configured size.
+     * If the size check fails, the result is the negation flag ({@link Spec#isNot()}) to preserve
+     * {@code not}-inversion semantics for the size predicate.</p>
+     */
     @SuppressWarnings("InnerClassMayBeStatic")
     public class Matcher implements PropertySpecMatcher<String[], Spec> {
         @Override
@@ -52,10 +82,16 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return ConditionUtils.revert(result, spec.isNot());
         }
 
+        /**
+         * Compare arrays for equality using {@link Arrays#equals(Object[], Object[])}.
+         */
         private static boolean equals(String[] property, String[] candidate) {
             return Arrays.equals(property, candidate);
         }
 
+        /**
+         * Match if any element of {@code candidate} is contained in {@code property}.
+         */
         private static boolean containsAny(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -71,6 +107,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return false;
         }
 
+        /**
+         * Match if all elements of {@code candidate} are contained in {@code property} (order-insensitive).
+         */
         private static boolean containsAll(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -94,6 +133,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return true;
         }
 
+        /**
+         * Match if {@code property} contains {@code candidate} as a contiguous subsequence.
+         */
         private static boolean containsSequence(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -112,6 +154,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return false;
         }
 
+        /**
+         * Match if the first element of {@code property} equals any element of {@code candidate}.
+         */
         private static boolean startsWithAny(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -125,6 +170,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return false;
         }
 
+        /**
+         * Match if {@code property} begins with the entire {@code candidate} sequence.
+         */
         private static boolean startsWithAll(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -140,6 +188,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return true;
         }
 
+        /**
+         * Match if the last element of {@code property} equals any element of {@code candidate}.
+         */
         private static boolean endsWithAny(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -154,6 +205,9 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
             return false;
         }
 
+        /**
+         * Match if {@code property} ends with the entire {@code candidate} sequence.
+         */
         private static boolean endsWithAll(String[] property, String[] candidate) {
             int candidateLength = candidate.length;
             if (candidateLength == 0) return true;
@@ -170,10 +224,23 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
         }
     }
 
+    /**
+     * {@link io.conditionals.condition.spec.PropertySpec} specialization for
+     * {@link io.conditionals.condition.ConditionalOnCollectionProperty}.
+     *
+     * <p>This spec adds an optional size constraint to the shared {@code not} and {@code matchType} attributes
+     * provided by {@link MatchingPropertySpec}.</p>
+     */
     public class Spec extends MatchingPropertySpec<String[], Spec, CollectionMatchType> {
         private static final String SIZE = "size";
         private final int size;
 
+        /**
+         * Create a new spec from annotation attributes.
+         *
+         * @param annotationType annotation type producing the attributes
+         * @param annotationAttributes resolved annotation attributes
+         */
         private Spec(Class<? extends Annotation> annotationType, AnnotationAttributes annotationAttributes) {
             super(annotationType, annotationAttributes);
             this.size = annotationAttributes.getNumber(SIZE).intValue();

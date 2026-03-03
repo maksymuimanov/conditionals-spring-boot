@@ -5,75 +5,113 @@ import io.conditionals.condition.spec.ComparableMatchType;
 import org.springframework.context.annotation.Conditional;
 
 import java.lang.annotation.*;
+
 /**
- * Declares a Spring Boot condition that matches based on integer-valued properties.
+ * Declares a Spring Boot {@link org.springframework.context.annotation.Condition} that matches based on
+ * {@code int}-valued configuration properties.
  *
- * <p>
- * When placed on a {@code @Configuration} class or {@code @Bean} method, Spring Boot evaluates the associated
- * {@link io.conditionals.condition.impl.OnIntegerPropertyCondition} during the condition evaluation phase of
- * configuration processing.
- * </p>
+ * <p>This annotation is backed by {@link io.conditionals.condition.impl.OnIntegerPropertyCondition} and is
+ * evaluated using Spring Boot's {@link org.springframework.boot.autoconfigure.condition.SpringBootCondition}
+ * infrastructure.</p>
  *
- * <p><b>Semantics</b></p>
+ * <p><b>Property resolution</b></p>
  * <ul>
- *     <li><b>Binding</b>: this annotation is backed by {@link io.conditionals.condition.impl.OnIntegerPropertyCondition}.</li>
- *     <li><b>Repeatable evaluation</b>: multiple instances (via {@link Repeatable} or {@link ConditionalOnIntegerProperties})
- *     are aggregated with AND semantics.</li>
- *     <li><b>Name resolution</b>: property keys are composed as {@code prefix + name} with prefix normalization
- *     (trim; append {@code '.'} when non-empty).</li>
- *     <li><b>Property name selection</b>: {@link #value()} and {@link #name()} are mutually exclusive; exactly one must
- *     be non-empty.</li>
- *     <li><b>Comparison</b>: the resolved property value is compared against {@link #havingValue()} using {@link #matchType()}.</li>
- *     <li><b>Negation</b>: the final predicate is {@code (comparisonResult XOR not)}.</li>
- *     <li><b>Missing behavior</b>: missing properties produce a no-match outcome unless {@link #matchIfMissing()} is {@code true}.</li>
+ *     <li>Property keys are built as {@code prefix + name} where {@link #prefix()} is normalized (trimmed;
+ *     a trailing {@code '.'} is appended when the prefix is non-empty).</li>
+ *     <li>{@link #value()} and {@link #name()} are mutually exclusive; exactly one must be specified.</li>
+ *     <li>Values are resolved from {@link org.springframework.core.env.Environment} and converted to
+ *     {@link Integer} using Spring's conversion service.</li>
  * </ul>
  *
- * <p><b>Thread Safety</b></p>
- * <p>This annotation is thread-safe. It declares immutable metadata.</p>
- *
- * <p><b>Null Handling</b></p>
- * <p>Annotation attributes are never {@code null}; resolved property values may be {@code null} and are treated as non-matching.</p>
- *
- * <p><b>Edge Cases</b></p>
+ * <p><b>Comparison and negation</b></p>
  * <ul>
- *     <li>Type conversion failures when resolving integer properties are treated as non-matching.</li>
- *     <li>Empty {@link #value()} and {@link #name()} arrays are invalid and will result in an {@link IllegalStateException}
- *     during evaluation.</li>
+ *     <li>The resolved property value is compared against {@link #havingValue()} using {@link #matchType()}.</li>
+ *     <li>Negation is applied as {@code (comparisonResult XOR not)}.</li>
+ *     <li>Conversion failures are treated as non-matching values.</li>
  * </ul>
  *
- * <p><b>Performance Characteristics</b></p>
- * <p>Evaluation is linear in the number of configured property names and annotation instances.</p>
+ * <p><b>Missing properties</b></p>
+ * <p>If a configured property is absent, the condition does not match unless {@link #matchIfMissing()} is
+ * {@code true}.</p>
  *
- * <p><b>Usage Example</b></p>
- * <pre>{@code
- * @ConditionalOnIntegerProperty(prefix = "app", name = "port", havingValue = 8080)
- * @Configuration
- * class PortConfiguration {
- * }
- * }</pre>
+ * <p><b>Repeatable semantics</b></p>
+ * <p>This annotation is {@link Repeatable} via {@link ConditionalOnIntegerProperties}. Each instance is
+ * evaluated independently and outcomes are aggregated with AND semantics by the underlying condition.</p>
+ *
+ * <p><b>Thread safety</b></p>
+ * <p>This annotation is immutable metadata and is therefore thread-safe.</p>
  *
  * @author Maksym Uimanov
  * @since 1.0
  * @see io.conditionals.condition.impl.OnIntegerPropertyCondition
  * @see ConditionalOnIntegerProperties
+ * @see ComparableMatchType
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Conditional(OnIntegerPropertyCondition.class)
 @Repeatable(ConditionalOnIntegerProperties.class)
 public @interface ConditionalOnIntegerProperty {
+    /**
+     * Alias for {@link #name()}.
+     *
+     * <p>Specifies one or more property names (without {@link #prefix()}). Exactly one of {@link #value()} or
+     * {@link #name()} must be specified.</p>
+     *
+     * @return property names (without prefix)
+     */
     String[] value() default {};
 
+    /**
+     * Prefix to apply to each configured property name.
+     *
+     * <p>The value is trimmed. When non-empty and not ending with {@code '.'}, a trailing dot is appended.
+     * The resulting key is {@code prefix + name}.</p>
+     *
+     * @return normalized prefix for property keys
+     */
     String prefix() default "";
 
+    /**
+     * One or more property names (without {@link #prefix()}).
+     *
+     * <p>Exactly one of {@link #value()} or {@link #name()} must be specified.</p>
+     *
+     * @return property names (without prefix)
+     */
     String[] name() default {};
 
+    /**
+     * Candidate value to compare against the resolved property value.
+     *
+     * @return candidate numeric value
+     */
     int havingValue() default 0;
 
+    /**
+     * Whether to negate the comparison result.
+     *
+     * <p>The final predicate is computed as {@code (comparisonResult XOR not)}.</p>
+     *
+     * @return {@code true} to invert the outcome for each compared property
+     */
     boolean not() default false;
 
+    /**
+     * Numeric comparison strategy to apply.
+     *
+     * @return comparison strategy
+     */
     ComparableMatchType matchType() default ComparableMatchType.EQUALS;
 
+    /**
+     * Whether to consider missing properties as matching.
+     *
+     * <p>When {@code true}, a missing property does not contribute to a non-match outcome. When {@code false},
+     * any missing property causes the condition to not match.</p>
+     *
+     * @return {@code true} to match when a configured property is missing
+     */
     boolean matchIfMissing() default false;
 }

@@ -66,15 +66,63 @@ import java.lang.annotation.*;
 @Conditional(OnEnumPropertyCondition.class)
 @Repeatable(ConditionalOnEnumProperties.class)
 public @interface ConditionalOnEnumProperty {
+    /**
+     * Alias for {@link #name()}.
+     *
+     * <p>Specifies one or more property names (without {@link #prefix()}). Exactly one of {@link #value()} or
+     * {@link #name()} must be specified.</p>
+     *
+     * @return property names (without prefix)
+     */
     String[] value() default {};
 
+    /**
+     * Prefix to apply to each configured property name.
+     *
+     * <p>The value is trimmed. When non-empty and not ending with {@code '.'}, a trailing dot is appended.
+     * The resulting key is {@code prefix + name}.</p>
+     *
+     * @return normalized prefix for property keys
+     */
     String prefix() default "";
 
+    /**
+     * One or more property names (without {@link #prefix()}).
+     *
+     * <p>Exactly one of {@link #value()} or {@link #name()} must be specified.</p>
+     *
+     * @return property names (without prefix)
+     */
     String[] name() default {};
 
+    /**
+     * Candidate enum constant name to compare against the resolved property value.
+     *
+     * <p>The property value is resolved as a {@link String}. Both the resolved value and this candidate value
+     * are normalized by upper-casing using {@link java.util.Locale#ROOT} before conversion via
+     * {@link Enum#valueOf(Class, String)}.</p>
+     *
+     * @return candidate enum constant name
+     */
     String havingValue() default "";
 
+    /**
+     * Enum type used to convert and compare values.
+     *
+     * <p>The backing condition uses {@link Enum#valueOf(Class, String)} for conversion. If conversion fails,
+     * the value is treated as non-matching.</p>
+     *
+     * @return enum type used for conversion
+     */
     Class<? extends Enum<?>> enumType();
 
+    /**
+     * Whether to consider missing properties as matching.
+     *
+     * <p>When {@code true}, a missing property does not contribute to a non-match outcome. When {@code false},
+     * any missing property causes the condition to not match.</p>
+     *
+     * @return {@code true} to match when a configured property is missing
+     */
     boolean matchIfMissing() default false;
 }

@@ -1,6 +1,6 @@
 # conditionals-spring-boot
 
-A small Java library that provides additional Spring Boot conditional annotations for environment-driven configuration selection.
+A small Java library providing additional Spring Boot conditional annotations for environment-driven configuration selection.
 
 ## Motivation
 
@@ -8,7 +8,7 @@ Spring Boot provides general-purpose condition mechanisms such as `@ConditionalO
 
 - Explicit, type-oriented comparisons (for example, numeric comparisons rather than string equality).
 - Predictable evaluation rules and error handling without relying on dynamic expression languages.
-- Repeatable, composable conditional declarations with well-defined evaluation order.
+- Repeatable conditional declarations with well-defined aggregation semantics.
 
 Use this library when:
 
@@ -24,16 +24,19 @@ Do not use this library when:
 ## Features
 
 - **Property-based conditions**
-  - String property matching with configurable match modes.
-  - Integer property comparisons with ordering semantics.
-  - Float property comparisons with ordering semantics and a defined equality tolerance.
+  - String property matching.
+  - Comparable/numeric property comparisons for integer, long, float, double.
+  - Duration property comparisons with Spring Boot duration parsing.
+  - Collection and map matching semantics.
   - Enum property matching with explicit enum type conversion.
 - **OS-based condition**
   - Substring match against the resolved `os.name` value.
+- **Port availability condition**
+  - Matches when all specified TCP ports can be bound.
 - **Repeatable annotation support**
-  - Repeatable variants for property-based conditions with encounter-ordered evaluation and AND aggregation.
+  - Repeatable variants for property-based conditions using a container annotation.
 - **Explicit semantics**
-  - Documented evaluation order, missing-property behavior, and conversion handling.
+  - Documented property key composition, missing-property behavior, and conversion handling.
 
 ## Installation
 
@@ -62,6 +65,10 @@ dependencies {
 ```properties
 app.mode=prod
 app.threads=8
+app.timeout=30s
+app.tags=red,green,blue
+app.labels.env=prod
+app.labels.region=eu
 app.ratio=0.75
 app.level=INFO
 ```
@@ -70,9 +77,14 @@ app.level=INFO
 
 ```java
 import io.conditionals.condition.ConditionalOnEnumProperty;
+import io.conditionals.condition.ConditionalOnDurationProperty;
 import io.conditionals.condition.ConditionalOnFloatProperty;
 import io.conditionals.condition.ConditionalOnIntegerProperty;
+import io.conditionals.condition.ConditionalOnMapProperty;
+import io.conditionals.condition.ConditionalOnCollectionProperty;
 import io.conditionals.condition.ConditionalOnStringProperty;
+import io.conditionals.condition.spec.ComparableMatchType;
+import io.conditionals.condition.spec.MapMatchType;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -81,9 +93,12 @@ import org.springframework.context.annotation.Configuration;
         prefix = "app",
         name = "threads",
         havingValue = 4,
-        matchType = ConditionalOnIntegerProperty.MatchType.GREATER_THAN_OR_EQUAL
+        matchType = ComparableMatchType.GREATER_THAN_OR_EQUAL
 )
 @ConditionalOnFloatProperty(prefix = "app", name = "ratio", havingValue = 0.75f)
+@ConditionalOnDurationProperty(prefix = "app", name = "timeout", havingValue = "10s", matchType = ComparableMatchType.GREATER_THAN)
+@ConditionalOnCollectionProperty(prefix = "app", name = "tags", havingValue = {"red", "blue"})
+@ConditionalOnMapProperty(prefix = "app", name = "labels", havingValue = {"env", "prod", "region", "eu"}, matchType = MapMatchType.CONTAINS_ALL)
 @ConditionalOnEnumProperty(prefix = "app", name = "level", havingValue = "INFO", enumType = Level.class)
 class ConditionalConfiguration {
     enum Level { TRACE, DEBUG, INFO, WARN, ERROR }
@@ -93,19 +108,26 @@ class ConditionalConfiguration {
 ### Explanation of behavior
 
 - Conditions are evaluated by Spring Boot during configuration processing for `@Configuration` classes and `@Bean` methods.
-- For repeatable conditions, annotation instances are evaluated in encounter order and aggregated with AND semantics: the annotated element matches only if all instances match.
-- Within a single annotation instance, property names are evaluated in declared array order.
+- For repeatable annotations, each annotation instance is evaluated and outcomes are aggregated with AND semantics: if any evaluated instance is a non-match, the final outcome is a non-match.
+- Within a single annotation instance, configured property names are evaluated in declared array order.
 - Missing properties yield a non-match unless the annotation provides `matchIfMissing=true`.
 
 ## Supported Conditions
 
-| Annotation | Description | Notes |
-| --- | --- | --- |
-| `@ConditionalOnStringProperty` | Matches based on one or more string properties using a selectable match mode. | Supports `ignoreCase`, `trim`, `not`, and match modes `EQUALS`, `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`, `MATCHES` (regex via `String#matches`). Repeatable; container: `@ConditionalOnStringProperties`. |
-| `@ConditionalOnIntegerProperty` | Matches based on integer property comparison. | Supports `not` and comparison modes `EQUALS`, `GREATER_THAN`, `LESS_THAN`, `GREATER_THAN_OR_EQUAL`, `LESS_THAN_OR_EQUAL`. Repeatable; container: `@ConditionalOnIntegerProperties`. |
-| `@ConditionalOnFloatProperty` | Matches based on float property comparison. | Supports `not` and comparison modes `EQUALS`, `GREATER_THAN`, `LESS_THAN`, `GREATER_THAN_OR_EQUAL`, `LESS_THAN_OR_EQUAL`. Equality uses absolute tolerance `0.00001F`. `NaN` is treated as non-matching. Repeatable; container: `@ConditionalOnFloatProperties`. |
-| `@ConditionalOnEnumProperty` | Matches based on enum constant equality. | Property and candidate are normalized using `Locale.ROOT` upper-casing and converted via `Enum#valueOf`. Invalid values are treated as non-matching. Repeatable; container: `@ConditionalOnEnumProperties`. |
-| `@ConditionalOnOs` | Matches based on the current OS name. | Resolves `os.name` from the Spring `Environment`, falling back to `System.getProperty`. Matches if any configured token is a substring of the resolved OS name (case-insensitive via `Locale.ROOT`). |
+| Annotation                         | Description                                                                   | Notes                                                                                                                                                                                                       |
+|------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@ConditionalOnStringProperty`     | Matches based on one or more string properties using a selectable match mode. | Supports `ignoreCase`, `trim`, `not`, and match modes `EQUALS`, `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`, `MATCHES` (regex via `String#matches`). Repeatable; container: `@ConditionalOnStringProperties`.    |
+| `@ConditionalOnIntegerProperty`    | Matches based on integer property comparison.                                 | Supports `not` and `ComparableMatchType` comparison modes. Repeatable; container: `@ConditionalOnIntegerProperties`.                                                                                        |
+| `@ConditionalOnLongProperty`       | Matches based on long property comparison.                                    | Supports `not` and `ComparableMatchType` comparison modes. Repeatable; container: `@ConditionalOnLongProperties`.                                                                                           |
+| `@ConditionalOnFloatProperty`      | Matches based on float property comparison.                                   | Supports `not` and `ComparableMatchType` comparison modes. Repeatable; container: `@ConditionalOnFloatProperties`.                                                                                          |
+| `@ConditionalOnDoubleProperty`     | Matches based on double property comparison.                                  | Supports `not` and `ComparableMatchType` comparison modes. Repeatable; container: `@ConditionalOnDoubleProperties`.                                                                                         |
+| `@ConditionalOnDurationProperty`   | Matches based on duration property comparison.                                | Parses both the resolved property and the candidate via `DurationStyle.detectAndParse`. Supports `not` and `ComparableMatchType`. Repeatable; container: `@ConditionalOnDurationProperties`.                |
+| `@ConditionalOnCharacterProperty`  | Matches based on character property comparison.                               | Backed by a comparable condition. Supports `not` and `ComparableMatchType`. Repeatable; container: `@ConditionalOnCharacterProperties`.                                                                     |
+| `@ConditionalOnCollectionProperty` | Matches based on `String[]` collection semantics.                             | Supports `not`, `size`, and `CollectionMatchType`. Repeatable; container: `@ConditionalOnCollectionProperties`.                                                                                             |
+| `@ConditionalOnMapProperty`        | Matches based on map-like properties under `prefix + name`.                   | Candidate is provided as key/value pairs. Supports `not` and `MapMatchType`. Repeatable; container: `@ConditionalOnMapProperties`.                                                                          |
+| `@ConditionalOnEnumProperty`       | Matches based on enum constant equality.                                      | Property and candidate are normalized using `Locale.ROOT` upper-casing and converted via `Enum#valueOf`. Invalid values are treated as non-matching. Repeatable; container: `@ConditionalOnEnumProperties`. |
+| `@ConditionalOnOs`                 | Matches based on the current OS name.                                         | Resolves `os.name` from the Spring `Environment`, falling back to `System.getProperty`. Matches if any configured token is a substring of the resolved OS name (case-insensitive via `Locale.ROOT`).        |
+| `@ConditionalOnPortAvailable`      | Matches when all specified ports are available for binding.                   | Probes each port by attempting to bind a `ServerSocket`.                                                                                                                                                    |
 
 ## Design Principles
 
@@ -116,30 +138,10 @@ class ConditionalConfiguration {
   - Missing-property behavior is explicit via `matchIfMissing`.
 - **AOT / Native Image friendliness**
   - Conditions rely on Spring Boot’s standard conditional infrastructure and environment property conversion.
-  - No dynamic expression parsing is required.
 - **Fail-fast philosophy**
   - Invalid annotation configuration (such as specifying both `name` and `value`, or specifying neither) is rejected during condition evaluation.
 - **Explicit semantics over dynamic expressions**
   - Comparisons are provided as dedicated match modes rather than arbitrary expressions.
-
-## Comparison
-
-### `@ConditionalOnProperty`
-
-- **Pros**
-  - Built-in and widely used.
-  - Suitable for presence checks and simple string-based comparisons.
-- **Trade-offs relative to this library**
-  - Comparisons are primarily string-oriented and do not directly express ordering comparisons for numeric values.
-  - More complex rules often require custom code or additional indirection.
-
-### `@ConditionalOnExpression`
-
-- **Pros**
-  - Highly flexible; can express complex boolean logic.
-- **Trade-offs relative to this library**
-  - Uses expression parsing and evaluation.
-  - Behavior depends on expression correctness and runtime evaluation rules.
 
 ## Thread Safety
 
