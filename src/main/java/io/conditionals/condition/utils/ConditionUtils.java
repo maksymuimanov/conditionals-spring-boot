@@ -72,8 +72,11 @@ public final class ConditionUtils {
                                                                 Class<? extends Annotation> annotationClass) {
         Map<String, Object> attributes = metadata.getAnnotationAttributes(annotationClass.getName());
         if (attributes == null)
-            return Stream.of();
-        AnnotationAttributes[] annotationAttributes = (AnnotationAttributes[]) attributes.get(VALUE);
+            return Stream.empty();
+        Object value = attributes.get(VALUE);
+        if (!(value instanceof AnnotationAttributes[] annotationAttributes)) {
+            return Stream.empty();
+        }
         return Arrays.stream(annotationAttributes);
     }
 

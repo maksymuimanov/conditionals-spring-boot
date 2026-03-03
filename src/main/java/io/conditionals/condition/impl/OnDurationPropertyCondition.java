@@ -90,7 +90,7 @@ public class OnDurationPropertyCondition extends ComparablePropertySpringBootCon
                      } else if (!this.isMatchIfMissing()) {
                          missing.add(name);
                      }
-                 } catch (ConversionException e) {
+                 } catch (ConversionException | IllegalArgumentException e) {
                      nonMatching.add(name);
                  }
              }

@@ -68,7 +68,8 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
         @Override
         public boolean compare(Spec spec, String @Nullable[] property, String[] candidate) {
             if (property == null) return false;
-            if (spec.size != -1 && property.length != spec.size) return spec.isNot();
+            boolean sizeMatches = spec.size == -1 || property.length == spec.size;
+            if (!sizeMatches) return spec.isNot();
             boolean result = switch (spec.getMatchType()) {
                 case EQUALS -> equals(property, candidate);
                 case CONTAINS_ANY -> containsAny(property, candidate);

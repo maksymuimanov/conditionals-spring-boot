@@ -79,7 +79,7 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
             int candidateSize = candidate.size();
             if (candidateSize == 0) return true;
 
-            return Map.copyOf(property).equals(Map.copyOf(candidate));
+            return property.equals(candidate);
         }
 
         /**
@@ -163,17 +163,18 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
                 try {
                     Map<String, String> propertyMap = new HashMap<>();
                     Iterable<String> mapKeys = this.getHavingValue().keySet();
+                    boolean isNotMatchIfMissing = !this.isMatchIfMissing();
                     for (String mapKey : mapKeys) {
                         String key = this.getPrefix() + name + "." + mapKey;
                         if (resolver.containsProperty(key)) {
                             String property = resolver.getProperty(key, String.class);
                             propertyMap.put(mapKey, property);
-                        } else if (!this.isMatchIfMissing()) {
+                        } else if (isNotMatchIfMissing) {
                             missing.add(name);
                         }
                     }
 
-                    if (!this.isMatch(propertyMap, matcher) && !this.isMatchIfMissing()) {
+                    if (!this.isMatch(propertyMap, matcher) && isNotMatchIfMissing) {
                         nonMatching.add(name);
                     }
                 } catch (ConversionException e) {
