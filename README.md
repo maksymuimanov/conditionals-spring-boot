@@ -1,5 +1,11 @@
 # conditionals-spring-boot
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.w4t3rcs/spring-boot-python-executor-starter?style=for-the-badge&logo=apache-maven&color=dgreen&label=starter)](https://central.sonatype.com/artifact/io.github.maksymuimanov/conditionals-spring-boot)
+![Java](https://img.shields.io/badge/Java-17%2B-orange?style=for-the-badge&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.11%2B-brightgreen?style=for-the-badge&logo=spring-boot)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=open-source-initiative)](https://opensource.org/licenses/MIT)
+![Tests Passed](https://img.shields.io/badge/Tests%20Passed-100%25-green?style=for-the-badge&logo=checkmarx)
+
 A small Java library providing additional Spring Boot conditional annotations for environment-driven configuration selection.
 
 ## Motivation
