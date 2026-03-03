@@ -11,6 +11,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 
 import java.lang.annotation.Annotation;
 import java.util.Locale;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * {@link org.springframework.boot.autoconfigure.condition.SpringBootCondition} implementation backing
@@ -74,7 +75,7 @@ public class OnStringPropertyCondition extends PropertySpringBootCondition<Strin
      *     both values are trimmed prior to comparison.</li>
      * </ul>
      */
-    public class Matcher implements PropertySpecMatcher<String, Spec> {
+    public static class Matcher implements PropertySpecMatcher<String, Spec> {
         @Override
         public boolean compare(Spec spec, @Nullable String property, String candidate) {
             if (property == null) return false;
@@ -87,13 +88,37 @@ public class OnStringPropertyCondition extends PropertySpringBootCondition<Strin
                 candidate = candidate.trim();
             }
             boolean result = switch (spec.getMatchType()) {
-                case EQUALS -> property.equals(candidate);
-                case CONTAINS -> property.contains(candidate);
-                case STARTS_WITH -> property.startsWith(candidate);
-                case ENDS_WITH -> property.endsWith(candidate);
-                case MATCHES -> property.matches(candidate);
+                case EQUALS -> equals(property, candidate);
+                case CONTAINS -> contains(property, candidate);
+                case STARTS_WITH -> startsWith(property, candidate);
+                case ENDS_WITH -> endsWith(property, candidate);
+                case MATCHES -> matches(property, candidate);
             };
             return ConditionUtils.revert(result, spec.isNot());
+        }
+
+        private static boolean equals(String property, String candidate) {
+            return property.equals(candidate);
+        }
+
+        private static boolean contains(String property, String candidate) {
+            return property.contains(candidate);
+        }
+
+        private static boolean startsWith(String property, String candidate) {
+            return property.startsWith(candidate);
+        }
+
+        private static boolean endsWith(String property, String candidate) {
+            return property.endsWith(candidate);
+        }
+
+        private static boolean matches(String property, String candidate) {
+            try {
+                return property.matches(candidate);
+            } catch (PatternSyntaxException e) {
+                return false;
+            }
         }
     }
 
@@ -104,7 +129,7 @@ public class OnStringPropertyCondition extends PropertySpringBootCondition<Strin
      * <p>In addition to the common attributes handled by {@link MatchingPropertySpec}, this spec captures
      * {@code ignoreCase} and {@code trim} options used by {@link Matcher}.</p>
      */
-    public class Spec extends MatchingPropertySpec<String, Spec, StringMatchType> {
+    public static class Spec extends MatchingPropertySpec<String, Spec, StringMatchType> {
         private static final String IGNORE_CASE = "ignoreCase";
         private static final String TRIM = "trim";
         private final boolean ignoreCase;

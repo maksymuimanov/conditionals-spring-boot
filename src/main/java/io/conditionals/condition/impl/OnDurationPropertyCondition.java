@@ -55,7 +55,7 @@ public class OnDurationPropertyCondition extends ComparablePropertySpringBootCon
      * Specification that parses the {@code havingValue} attribute and resolved property values as
      * {@link Duration}.
      */
-    public class Spec extends ComparablePropertySpec<Duration, Duration> {
+    public static class Spec extends ComparablePropertySpec<Duration, Duration> {
         /**
          * Create a new spec using {@link DurationStyle#detectAndParse(String)} for candidate parsing.
          *

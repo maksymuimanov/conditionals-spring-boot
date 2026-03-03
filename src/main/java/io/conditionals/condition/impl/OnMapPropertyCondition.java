@@ -15,6 +15,7 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * {@link org.springframework.boot.autoconfigure.condition.SpringBootCondition} implementation backing
@@ -60,7 +61,7 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
     /**
      * Matcher implementing {@link MapMatchType} semantics for {@code Map<String, String>} values.
      */
-    public class Matcher implements PropertySpecMatcher<Map<String, String>, Spec> {
+    public static class Matcher implements PropertySpecMatcher<Map<String, String>, Spec> {
         @Override
         public boolean compare(Spec spec, @Nullable Map<String, String> property, Map<String, String> candidate) {
             if (property == null) return false;
@@ -79,7 +80,7 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
             int candidateSize = candidate.size();
             if (candidateSize == 0) return true;
 
-            return property.equals(candidate);
+            return Objects.equals(property, candidate);
         }
 
         /**
@@ -125,7 +126,7 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
      * <p>The {@code havingValue} attribute is interpreted as alternating key/value elements
      * ({@code k1, v1, k2, v2, ...}). The resulting map drives which sub-keys are resolved from the environment.</p>
      */
-    public class Spec extends MatchingPropertySpec<Map<String, String>, Spec, MapMatchType> {
+    public static class Spec extends MatchingPropertySpec<Map<String, String>, Spec, MapMatchType> {
         /**
          * Create a new spec parsing key/value pairs from the {@code havingValue} attribute.
          *
@@ -162,19 +163,24 @@ public class OnMapPropertyCondition extends PropertySpringBootCondition<Map<Stri
             for (String name : this.getNames()) {
                 try {
                     Map<String, String> propertyMap = new HashMap<>();
-                    Iterable<String> mapKeys = this.getHavingValue().keySet();
-                    boolean isNotMatchIfMissing = !this.isMatchIfMissing();
-                    for (String mapKey : mapKeys) {
+                    boolean anyKeyFound = false;
+                    for (String mapKey : this.getHavingValue().keySet()) {
                         String key = this.getPrefix() + name + "." + mapKey;
-                        if (resolver.containsProperty(key)) {
-                            String property = resolver.getProperty(key, String.class);
+                        String property = resolver.getProperty(key, String.class);
+                        if (property != null) {
                             propertyMap.put(mapKey, property);
-                        } else if (isNotMatchIfMissing) {
-                            missing.add(name);
+                            anyKeyFound = true;
                         }
                     }
 
-                    if (!this.isMatch(propertyMap, matcher) && isNotMatchIfMissing) {
+                    if (!anyKeyFound) {
+                        if (!this.isMatchIfMissing()) {
+                            missing.add(name);
+                        }
+                        continue;
+                    }
+
+                    if (!this.isMatch(propertyMap, matcher)) {
                         nonMatching.add(name);
                     }
                 } catch (ConversionException e) {

@@ -63,14 +63,12 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
      * If the size check fails, the result is the negation flag ({@link Spec#isNot()}) to preserve
      * {@code not}-inversion semantics for the size predicate.</p>
      */
-    @SuppressWarnings("InnerClassMayBeStatic")
-    public class Matcher implements PropertySpecMatcher<String[], Spec> {
+    public static class Matcher implements PropertySpecMatcher<String[], Spec> {
         @Override
         public boolean compare(Spec spec, String @Nullable[] property, String[] candidate) {
             if (property == null) return false;
             boolean sizeMatches = spec.size == -1 || property.length == spec.size;
-            if (!sizeMatches) return spec.isNot();
-            boolean result = switch (spec.getMatchType()) {
+            boolean result = sizeMatches && switch (spec.getMatchType()) {
                 case EQUALS -> equals(property, candidate);
                 case CONTAINS_ANY -> containsAny(property, candidate);
                 case CONTAINS_ALL -> containsAll(property, candidate);
@@ -232,7 +230,7 @@ public class OnCollectionPropertyCondition extends PropertySpringBootCondition<S
      * <p>This spec adds an optional size constraint to the shared {@code not} and {@code matchType} attributes
      * provided by {@link MatchingPropertySpec}.</p>
      */
-    public class Spec extends MatchingPropertySpec<String[], Spec, CollectionMatchType> {
+    public static class Spec extends MatchingPropertySpec<String[], Spec, CollectionMatchType> {
         private static final String SIZE = "size";
         private final int size;
 

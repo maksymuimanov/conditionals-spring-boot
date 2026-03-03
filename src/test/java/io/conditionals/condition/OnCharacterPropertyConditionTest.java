@@ -13,7 +13,7 @@ class OnCharacterPropertyConditionTest {
 
     @Test
     void characterPropertyCondition_shouldCreateBean_whenPropertyEqualsHavingValue() {
-        this.contextRunner.withPropertyValues("app.letter=65")
+        this.contextRunner.withPropertyValues("app.letter=a")
                 .withUserConfiguration(EqualsConfig.class)
                 .run(context -> assertThat(context)
                         .hasSingleBean(Character.class));
@@ -21,7 +21,7 @@ class OnCharacterPropertyConditionTest {
 
     @Test
     void characterPropertyCondition_shouldNotCreateBean_whenPropertyPresentButDifferent() {
-        this.contextRunner.withPropertyValues("app.letter=66")
+        this.contextRunner.withPropertyValues("app.letter=b")
                 .withUserConfiguration(EqualsConfig.class)
                 .run(context -> assertThat(context)
                         .doesNotHaveBean(Character.class));
@@ -43,7 +43,7 @@ class OnCharacterPropertyConditionTest {
 
     @Test
     void characterPropertyCondition_shouldCreateBean_whenGreaterThanMatches() {
-        this.contextRunner.withPropertyValues("app.letter=90")
+        this.contextRunner.withPropertyValues("app.letter=c")
                 .withUserConfiguration(GreaterThanConfig.class)
                 .run(context -> assertThat(context)
                         .hasSingleBean(Character.class));
@@ -51,7 +51,7 @@ class OnCharacterPropertyConditionTest {
 
     @Test
     void characterPropertyCondition_shouldNotCreateBean_whenNotFlagInvertsMatch() {
-        this.contextRunner.withPropertyValues("app.letter=65")
+        this.contextRunner.withPropertyValues("app.letter=a")
                 .withUserConfiguration(NotConfig.class)
                 .run(context -> assertThat(context)
                         .doesNotHaveBean(Character.class));
@@ -59,10 +59,8 @@ class OnCharacterPropertyConditionTest {
 
     @Test
     void characterPropertyCondition_shouldCreateBean_whenContainerAnnotationAllMatches() {
-        this.contextRunner.withPropertyValues(
-                        "app.one=65",
-                        "app.two=66"
-                ).withUserConfiguration(ContainerAnyMatchesConfig.class)
+        this.contextRunner.withPropertyValues("app.one=a", "app.two=b")
+                .withUserConfiguration(ContainerAnyMatchesConfig.class)
                 .run(context -> assertThat(context)
                         .hasSingleBean(Character.class));
     }
@@ -70,7 +68,7 @@ class OnCharacterPropertyConditionTest {
     @Test
     void characterPropertyCondition_shouldNotCreateBean_whenContainerAnnotationNoneMatches() {
         this.contextRunner.withPropertyValues(
-                        "app.one=65",
+                        "app.one=a",
                         "app.two=67"
                 ).withUserConfiguration(ContainerAnyMatchesConfig.class)
                 .run(context -> assertThat(context)
@@ -80,7 +78,7 @@ class OnCharacterPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class EqualsConfig {
         @Bean
-        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 65)
+        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 'a')
         Character conditionalBean() {
             return 'A';
         }
@@ -89,7 +87,7 @@ class OnCharacterPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class MatchIfMissingConfig {
         @Bean
-        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 65, matchIfMissing = true)
+        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 'a', matchIfMissing = true)
         Character conditionalBean() {
             return 'A';
         }
@@ -98,7 +96,7 @@ class OnCharacterPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class GreaterThanConfig {
         @Bean
-        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 65, matchType = ComparableMatchType.GREATER_THAN)
+        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 'a', matchType = ComparableMatchType.GREATER_THAN)
         Character conditionalBean() {
             return 'A';
         }
@@ -107,15 +105,15 @@ class OnCharacterPropertyConditionTest {
     @Configuration(proxyBeanMethods = false)
     static class NotConfig {
         @Bean
-        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 65, not = true)
+        @ConditionalOnCharacterProperty(name = "app.letter", havingValue = 'a', not = true)
         Character conditionalBean() {
             return 'A';
         }
     }
 
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnCharacterProperty(name = "app.one", havingValue = 65)
-    @ConditionalOnCharacterProperty(name = "app.two", havingValue = 66)
+    @ConditionalOnCharacterProperty(name = "app.one", havingValue = 'a')
+    @ConditionalOnCharacterProperty(name = "app.two", havingValue = 'b')
     static class ContainerAnyMatchesConfig {
         @Bean
         Character conditionalBean() {

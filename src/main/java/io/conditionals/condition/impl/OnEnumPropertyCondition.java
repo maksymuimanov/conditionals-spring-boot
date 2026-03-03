@@ -4,6 +4,7 @@ import io.conditionals.condition.ConditionalOnEnumProperties;
 import io.conditionals.condition.ConditionalOnEnumProperty;
 import io.conditionals.condition.spec.PropertySpec;
 import io.conditionals.condition.spec.PropertySpecMatcher;
+import io.conditionals.condition.utils.ConditionUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationAttributes;
 
@@ -50,7 +51,7 @@ public class OnEnumPropertyCondition extends PropertySpringBootCondition<String,
      * Matcher converting both sides to enum constants and comparing them for equality.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public class Matcher implements PropertySpecMatcher<String, Spec> {
+    public static class Matcher implements PropertySpecMatcher<String, Spec> {
         @Override
         public boolean compare(Spec spec, @Nullable String property, String candidate) {
             if (property == null) return false;
@@ -60,7 +61,8 @@ public class OnEnumPropertyCondition extends PropertySpringBootCondition<String,
             try {
                 Enum propertyEnum = Enum.valueOf(enumClass, propertyName);
                 Enum candidateEnum = Enum.valueOf(enumClass, candidateName);
-                return propertyEnum.equals(candidateEnum);
+                boolean equals = propertyEnum.equals(candidateEnum);
+                return ConditionUtils.revert(equals, spec.not);
             } catch (IllegalArgumentException ex) {
                 return false;
             }
@@ -72,9 +74,11 @@ public class OnEnumPropertyCondition extends PropertySpringBootCondition<String,
      * conversion.
      */
     @SuppressWarnings("rawtypes")
-    public class Spec extends PropertySpec<String, Spec> {
+    public static class Spec extends PropertySpec<String, Spec> {
         private static final String ENUM_TYPE = "enumType";
+        private static final String NOT = "not";
         private final Class<? extends Enum> enumType;
+        private final boolean not;
 
         /**
          * Create a new spec from annotation attributes.
@@ -85,6 +89,7 @@ public class OnEnumPropertyCondition extends PropertySpringBootCondition<String,
         private Spec(Class<? extends Annotation> annotationType, AnnotationAttributes annotationAttributes) {
             super(annotationType, annotationAttributes);
             this.enumType = annotationAttributes.getClass(ENUM_TYPE);
+            this.not = annotationAttributes.getBoolean(NOT);
         }
     }
 }

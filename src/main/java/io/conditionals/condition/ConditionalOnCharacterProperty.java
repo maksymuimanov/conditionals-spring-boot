@@ -72,9 +72,9 @@ public @interface ConditionalOnCharacterProperty {
     /**
      * Candidate value to compare against the resolved property value.
      *
-     * @return candidate character value (represented as a numeric literal due to annotation constraints)
+     * @return candidate character value
      */
-    double havingValue() default 0;
+    char havingValue() default '\0';
 
     /**
      * Whether to negate the comparison result.

@@ -117,6 +117,13 @@ public @interface ConditionalOnEnumProperty {
     Class<? extends Enum<?>> enumType();
 
     /**
+     * Whether to negate the comparison result.
+     *
+     * @return {@code true} to invert the outcome
+     */
+    boolean not() default false;
+
+    /**
      * Whether to consider missing properties as matching.
      *
      * <p>When {@code true}, a missing property does not contribute to a non-match outcome. When {@code false},
